@@ -169,9 +169,6 @@ Todos os endpoints requerem `user_id` para isolamento de dados entre usuários.
 5. Adicionar testes automatizados
 6. Configurar CI/CD
 
-## Contribuição
-
-Este projeto foi desenvolvido com Manus AI como equipe de engenharia autônoma.
 
 ## Licença
 
