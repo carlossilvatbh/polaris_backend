@@ -42,10 +42,16 @@ from src.models.template_documento import TemplateDeDocumento
 # Importar blueprints
 from src.routes.user import user_bp
 from src.routes.cliente import cliente_bp
+from src.routes.ai import ai_bp
+from src.routes.mcp import mcp_bp
+from src.routes.search import search_bp
 
 # Registrar blueprints
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(cliente_bp, url_prefix='/api')
+app.register_blueprint(ai_bp, url_prefix='/api')
+app.register_blueprint(mcp_bp, url_prefix='/api')
+app.register_blueprint(search_bp, url_prefix='/api')
 
 # Rota para servir frontend
 @app.route('/')
