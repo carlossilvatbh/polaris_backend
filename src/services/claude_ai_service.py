@@ -72,10 +72,9 @@ class ClaudeAIService:
             if not self.api_key:
                 return AIResponse(
                     success=True,
-                    response=("Esta é uma resposta simulada do Claude AI. "
-                              "Para ativar a IA real, configure "
-                              f"ANTHROPIC_API_KEY. Seu prompt foi: {prompt}"),
-                    model="simulado",
+                    content=("Esta é uma resposta simulada do Claude AI. "
+                             "Para ativar a IA real, configure "
+                             f"ANTHROPIC_API_KEY. Seu prompt foi: {prompt}"),
                     usage={'tokens': 0}
                 )
             

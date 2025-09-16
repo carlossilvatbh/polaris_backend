@@ -46,12 +46,30 @@ from src.routes.ai import ai_bp
 from src.routes.mcp import mcp_bp
 from src.routes.search import search_bp
 
+# Tentar importar rotas enhanced (RAG)
+try:
+    from src.services.rag_claude_integration import register_enhanced_ai_routes
+    enhanced_routes_available = True
+    logger.info("Enhanced AI routes (RAG) disponíveis")
+except ImportError:
+    enhanced_routes_available = False
+    logger.info("Enhanced AI routes (RAG) não disponíveis - "
+                "dependências opcionais não instaladas")
+
 # Registrar blueprints
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(cliente_bp, url_prefix='/api')
 app.register_blueprint(ai_bp, url_prefix='/api')
 app.register_blueprint(mcp_bp, url_prefix='/api')
 app.register_blueprint(search_bp, url_prefix='/api')
+
+# Registrar rotas enhanced se disponíveis
+if enhanced_routes_available:
+    try:
+        register_enhanced_ai_routes(app)
+        logger.info("Enhanced AI routes registradas com sucesso")
+    except Exception as e:
+        logger.warning(f"Erro ao registrar enhanced AI routes: {str(e)}")
 
 # Rota para servir frontend
 @app.route('/')
