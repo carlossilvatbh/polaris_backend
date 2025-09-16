@@ -3,10 +3,9 @@ RAG Manager - Core do sistema RAG jurídico
 Gerencia embeddings, vector store e busca semântica
 """
 
-import os
 import json
 import logging
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List
 from pathlib import Path
 from datetime import datetime
 
@@ -66,7 +65,7 @@ class JuridicalRAGManager:
             self.collection = self._init_collection()
             self.embedding_model = self._init_embedding_model()
             
-            logger.info(f"RAG Manager inicializado com sucesso")
+            logger.info("RAG Manager inicializado com sucesso")
             logger.info(f"Banco vetorial: {self.chroma_db_path}")
             logger.info(f"Modelo de embeddings: {self.embedding_model_name}")
             
@@ -115,13 +114,16 @@ class JuridicalRAGManager:
         try:
             # Tenta carregar coleção existente
             try:
-                collection = self.client.get_collection(name=self.collection_name)
+                collection = self.client.get_collection(
+                    name=self.collection_name)
                 logger.info(f"Coleção '{self.collection_name}' carregada")
-            except:
+            except Exception:
                 # Cria nova coleção
                 collection = self.client.create_collection(
                     name=self.collection_name,
-                    metadata={"description": "Documentos jurídicos processados pelo POLARIS"}
+                    metadata={
+                        "description": "Documentos jurídicos processados pelo POLARIS"
+                    }
                 )
                 logger.info(f"Nova coleção '{self.collection_name}' criada")
             
@@ -145,8 +147,10 @@ class JuridicalRAGManager:
                 model = SentenceTransformer('all-MiniLM-L6-v2')
                 logger.warning("Usando modelo fallback: all-MiniLM-L6-v2")
                 return model
-            except:
-                raise Exception("Não foi possível carregar nenhum modelo de embeddings")
+            except Exception as fallback_error:
+                raise Exception(
+                    f"Não foi possível carregar modelo: {str(fallback_error)}"
+                )
     
     def add_documents(self, file_paths: List[str]) -> Dict[str, Any]:
         """
