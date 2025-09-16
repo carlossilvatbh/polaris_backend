@@ -8,8 +8,9 @@ e monitoramento do sistema POLARIS.
 import os
 import json
 import logging
+import logging.handlers
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from enum import Enum
 import traceback
@@ -81,36 +82,71 @@ class AuditEntry:
 
 
 class LoggingService:
-    """Service para logging e auditoria"""
+    """Service para logging e auditoria com configuração flexível"""
     
-    def __init__(self):
-        self.logs_dir = os.path.join(os.getcwd(), 'logs')
+    def __init__(self,
+                 logs_dir: Optional[str] = None,
+                 config: Optional[Dict[str, Any]] = None):
+        """
+        Inicializar LoggingService
+        
+        Args:
+            logs_dir: Diretório para logs (opcional, usa 'logs' se None)
+            config: Configurações adicionais (opcional)
+        """
+        # Configurar diretório de logs
+        if logs_dir:
+            self.logs_dir = logs_dir
+        else:
+            # Usar variável de ambiente ou padrão
+            self.logs_dir = os.environ.get(
+                'POLARIS_LOGS_DIR',
+                os.path.join(os.getcwd(), 'logs')
+            )
+        
         os.makedirs(self.logs_dir, exist_ok=True)
+        
+        # Configurações padrão
+        default_config = {
+            'max_log_file_size': 10 * 1024 * 1024,  # 10MB
+            'max_log_files': 5,
+            'log_retention_days': 30,
+            'console_log_level': 'WARNING',
+            'file_log_level': 'DEBUG'
+        }
+        
+        # Mesclar configurações
+        if config:
+            default_config.update(config)
+        
+        # Aplicar configurações
+        self.max_log_file_size = default_config['max_log_file_size']
+        self.max_log_files = default_config['max_log_files']
+        self.log_retention_days = default_config['log_retention_days']
+        self.console_log_level = getattr(
+            logging, default_config['console_log_level'])
+        self.file_log_level = getattr(
+            logging, default_config['file_log_level'])
         
         # Configurar logging padrão
         self._setup_logging()
         
-        # Configurações
-        self.max_log_file_size = 10 * 1024 * 1024  # 10MB
-        self.max_log_files = 5
-        self.log_retention_days = 30
-        
         # Logger principal
         self.logger = logging.getLogger('polaris')
     
-    def log(self, 
+    def log(self,
             level: LogLevel,
             service: str,
             action: str,
             message: str,
-            user_id: int = None,
-            session_id: str = None,
-            ip_address: str = None,
-            user_agent: str = None,
-            request_id: str = None,
-            duration_ms: float = None,
-            metadata: Dict[str, Any] = None,
-            error_details: Dict[str, Any] = None):
+            user_id: Optional[int] = None,
+            session_id: Optional[str] = None,
+            ip_address: Optional[str] = None,
+            user_agent: Optional[str] = None,
+            request_id: Optional[str] = None,
+            duration_ms: Optional[float] = None,
+            metadata: Optional[Dict[str, Any]] = None,
+            error_details: Optional[Dict[str, Any]] = None) -> None:
         """
         Registrar log estruturado
         
@@ -236,20 +272,21 @@ class LoggingService:
             db.session.add(audit_log)
             db.session.commit()
             
-            # Log da auditoria
+            # Log da auditoria usando a entrada estruturada
             self.log(
                 level=LogLevel.INFO,
                 service="AuditService",
                 action=action_type.value,
                 message=f"Audit: {action_type.value} {resource_type}",
-                user_id=user_id,
-                session_id=session_id,
-                ip_address=ip_address,
-                user_agent=user_agent,
+                user_id=audit_entry.user_id,
+                session_id=audit_entry.session_id,
+                ip_address=audit_entry.ip_address,
+                user_agent=audit_entry.user_agent,
                 metadata={
                     'resource_type': resource_type,
                     'resource_id': resource_id,
-                    'success': success
+                    'success': audit_entry.success,
+                    'timestamp': audit_entry.timestamp.isoformat()
                 }
             )
             
@@ -261,7 +298,10 @@ class LoggingService:
                 action="AUDIT_ERROR",
                 message=f"Erro na auditoria: {str(e)}",
                 user_id=user_id,
-                error_details={'error': str(e), 'traceback': traceback.format_exc()}
+                error_details={
+                    'error': str(e),
+                    'traceback': traceback.format_exc()
+                }
             )
     
     def info(self, service: str, action: str, message: str, **kwargs):
@@ -329,7 +369,8 @@ class LoggingService:
                             continue
                         
                         # Filtros de data
-                        log_timestamp = datetime.fromisoformat(log_data['timestamp'])
+                        timestamp_str = log_data['timestamp']
+                        log_timestamp = datetime.fromisoformat(timestamp_str)
                         
                         if start_date and log_timestamp < start_date:
                             continue
@@ -351,7 +392,8 @@ class LoggingService:
             return logs[:limit]
             
         except Exception as e:
-            self.error("LoggingService", "GET_LOGS", f"Erro ao obter logs: {str(e)}")
+            error_msg = f"Erro ao obter logs: {str(e)}"
+            self.error("LoggingService", "GET_LOGS", error_msg)
             return []
     
     def get_audit_logs(self,
@@ -400,7 +442,8 @@ class LoggingService:
             return [log.to_dict() for log in audit_logs]
             
         except Exception as e:
-            self.error("LoggingService", "GET_AUDIT_LOGS", f"Erro ao obter logs de auditoria: {str(e)}")
+            error_msg = f"Erro ao obter logs de auditoria: {str(e)}"
+            self.error("LoggingService", "GET_AUDIT_LOGS", error_msg)
             return []
     
     def get_statistics(self) -> Dict[str, Any]:
@@ -442,7 +485,7 @@ class LoggingService:
             
             # Erros recentes
             recent_errors = AuditLog.query.filter(
-                AuditLog.success == False,
+                AuditLog.success.is_(False),
                 AuditLog.created_at >= datetime.utcnow() - timedelta(hours=24)
             ).count()
             
@@ -454,6 +497,21 @@ class LoggingService:
                     if os.path.isfile(file_path):
                         log_files_size += os.path.getsize(file_path)
             
+            # Preparar estatísticas por tipo de ação
+            action_stats_dict = {
+                action_type: count
+                for action_type, count in action_stats
+            }
+            
+            # Preparar lista de top usuários
+            top_users_list = [
+                {'user_id': user_id, 'count': count}
+                for user_id, count in user_stats
+            ]
+            
+            # Calcular tamanho máximo em MB
+            max_size_mb = self.max_log_file_size / (1024 * 1024)
+            
             return {
                 'audit_logs': {
                     'total': total_audit_logs,
@@ -461,23 +519,31 @@ class LoggingService:
                     'this_week': logs_week,
                     'recent_errors': recent_errors
                 },
-                'by_action_type': {action_type: count for action_type, count in action_stats},
-                'top_users': [{'user_id': user_id, 'count': count} for user_id, count in user_stats],
+                'by_action_type': action_stats_dict,
+                'top_users': top_users_list,
                 'log_files': {
                     'directory': self.logs_dir,
                     'total_size_mb': round(log_files_size / (1024 * 1024), 2)
                 },
                 'config': {
-                    'max_log_file_size_mb': self.max_log_file_size / (1024 * 1024),
+                    'max_log_file_size_mb': max_size_mb,
                     'max_log_files': self.max_log_files,
                     'retention_days': self.log_retention_days
                 }
             }
             
         except Exception as e:
-            self.error("LoggingService", "GET_STATISTICS", f"Erro nas estatísticas: {str(e)}")
+            error_msg = f"Erro nas estatísticas: {str(e)}"
+            self.error("LoggingService", "GET_STATISTICS", error_msg)
+            
+            # Resposta padrão em caso de erro
+            error_response = {
+                'total': 0, 'today': 0,
+                'this_week': 0, 'recent_errors': 0
+            }
+            
             return {
-                'audit_logs': {'total': 0, 'today': 0, 'this_week': 0, 'recent_errors': 0},
+                'audit_logs': error_response,
                 'by_action_type': {},
                 'top_users': [],
                 'log_files': {'directory': self.logs_dir, 'total_size_mb': 0},
@@ -492,7 +558,9 @@ class LoggingService:
             Dict com estatísticas da limpeza
         """
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=self.log_retention_days)
+            # Calcular data de corte para retenção
+            retention_days = self.log_retention_days
+            cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
             
             # Limpar logs de auditoria antigos
             deleted_audit = AuditLog.query.filter(
@@ -507,16 +575,17 @@ class LoggingService:
                 for filename in os.listdir(self.logs_dir):
                     file_path = os.path.join(self.logs_dir, filename)
                     if os.path.isfile(file_path):
-                        file_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+                        # Verificar se arquivo é antigo
+                        file_mtime = os.path.getmtime(file_path)
+                        file_time = datetime.fromtimestamp(file_mtime)
                         if file_time < cutoff_date:
                             os.remove(file_path)
                             deleted_files += 1
             
-            self.info(
-                "LoggingService",
-                "CLEANUP",
-                f"Limpeza concluída: {deleted_audit} audit logs, {deleted_files} arquivos"
-            )
+            # Log de conclusão da limpeza
+            cleanup_msg = (f"Limpeza concluída: {deleted_audit} audit logs, "
+                           f"{deleted_files} arquivos")
+            self.info("LoggingService", "CLEANUP", cleanup_msg)
             
             return {
                 'deleted_audit_logs': deleted_audit,
@@ -526,7 +595,8 @@ class LoggingService:
             
         except Exception as e:
             db.session.rollback()
-            self.error("LoggingService", "CLEANUP", f"Erro na limpeza: {str(e)}")
+            error_msg = f"Erro na limpeza: {str(e)}"
+            self.error("LoggingService", "CLEANUP", error_msg)
             return {
                 'deleted_audit_logs': 0,
                 'deleted_files': 0,
@@ -543,28 +613,31 @@ class LoggingService:
         try:
             # Verificar diretório de logs
             logs_dir_exists = os.path.exists(self.logs_dir)
-            logs_dir_writable = os.access(self.logs_dir, os.W_OK) if logs_dir_exists else False
+            if logs_dir_exists:
+                logs_dir_writable = os.access(self.logs_dir, os.W_OK)
+            else:
+                logs_dir_writable = False
             
             # Testar escrita de log
             test_log_success = False
             try:
                 self.debug("LoggingService", "HEALTH_CHECK", "Test log entry")
                 test_log_success = True
-            except:
+            except Exception:
                 pass
             
             # Testar auditoria
             test_audit_success = False
             try:
                 # Não salvar no banco, apenas testar criação do objeto
-                test_audit = AuditLog(
+                _ = AuditLog(
                     user_id=0,
                     action_type="TEST",
                     resource_type="health_check",
                     success=True
                 )
                 test_audit_success = True
-            except:
+            except Exception:
                 pass
             
             # Verificar tamanho dos logs
@@ -577,10 +650,15 @@ class LoggingService:
                     if os.path.isfile(file_path):
                         file_size = os.path.getsize(file_path)
                         total_size += file_size
+                        
+                        # Formatar data de modificação
+                        mtime = os.path.getmtime(file_path)
+                        modified_date = datetime.fromtimestamp(mtime)
+                        
                         log_files_info.append({
                             'filename': filename,
                             'size_mb': round(file_size / (1024 * 1024), 2),
-                            'modified': datetime.fromtimestamp(os.path.getmtime(file_path)).isoformat()
+                            'modified': modified_date.isoformat()
                         })
             
             # Estatísticas recentes
@@ -611,7 +689,8 @@ class LoggingService:
                 "log_files": {
                     "count": len(log_files_info),
                     "total_size_mb": round(total_size / (1024 * 1024), 2),
-                    "files": log_files_info[:5]  # Mostrar apenas os 5 primeiros
+                    # Mostrar apenas os 5 primeiros arquivos
+                    "files": log_files_info[:5]
                 },
                 "statistics": {
                     "total_audit_logs": stats['audit_logs']['total'],
@@ -635,18 +714,22 @@ class LoggingService:
     
     # Métodos privados auxiliares
     
-    def _setup_logging(self):
-        """Configurar sistema de logging"""
+    def _setup_logging(self) -> None:
+        """Configurar sistema de logging com handlers seguros"""
         try:
             # Configurar logger principal
             logger = logging.getLogger('polaris')
             logger.setLevel(logging.DEBUG)
             
-            # Remover handlers existentes
+            # Remover handlers existentes para evitar duplicação
             for handler in logger.handlers[:]:
+                handler.close()
                 logger.removeHandler(handler)
             
-            # Handler para arquivo
+            # Garantir que diretório de logs existe
+            os.makedirs(self.logs_dir, exist_ok=True)
+            
+            # Handler para arquivo com rotação
             log_file = os.path.join(self.logs_dir, 'polaris.log')
             file_handler = logging.handlers.RotatingFileHandler(
                 log_file,
@@ -654,12 +737,17 @@ class LoggingService:
                 backupCount=self.max_log_files,
                 encoding='utf-8'
             )
+            file_handler.setLevel(logging.DEBUG)
             
-            # Handler para console
+            # Handler para console (apenas WARNING e acima para evitar spam)
             console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.WARNING)
             
-            # Formatter simples (JSON será adicionado pelo service)
-            formatter = logging.Formatter('%(message)s')
+            # Formatter estruturado
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
             file_handler.setFormatter(formatter)
             console_handler.setFormatter(formatter)
             
@@ -670,8 +758,20 @@ class LoggingService:
             # Evitar propagação para root logger
             logger.propagate = False
             
+            # Log de inicialização
+            logger.info("LoggingService initialized successfully")
+            
         except Exception as e:
-            print(f"[ERROR] LoggingService setup: {str(e)}")
+            # Fallback seguro
+            print(f"[ERROR] LoggingService setup failed: {str(e)}")
+            # Criar logger básico como fallback
+            basic_logger = logging.getLogger('polaris')
+            basic_logger.setLevel(logging.INFO)
+            if not basic_logger.handlers:
+                handler = logging.StreamHandler()
+                formatter = logging.Formatter('%(levelname)s: %(message)s')
+                handler.setFormatter(formatter)
+                basic_logger.addHandler(handler)
 
 
 # Decorador para logging automático

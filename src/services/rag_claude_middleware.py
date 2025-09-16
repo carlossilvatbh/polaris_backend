@@ -6,7 +6,7 @@ sem quebrar compatibilidade. Para uso nas rotas.
 """
 
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from datetime import datetime
 
 # Import seguro do service Claude existente
@@ -97,7 +97,7 @@ class RAGClaudeMiddleware:
         else:
             self.logger.info("📦 Cache não disponível")
     
-    def chat(self, prompt: str, user_id: int = None, 
+    def chat(self, prompt: str, user_id: int = None,
              use_rag: bool = True, use_cache: bool = True) -> Dict[str, Any]:
         """
         Chat inteligente com RAG opcional.
@@ -171,7 +171,9 @@ class RAGClaudeMiddleware:
                         'content': claude_response.content,
                         'mode': 'rag_enhanced',
                         'rag_sources': rag_response.get('sources', []),
-                        'rag_chunks': len(rag_response.get('context_chunks', [])),
+                        'rag_chunks': len(
+                            rag_response.get('context_chunks', [])
+                        ),
                         'usage': claude_response.usage,
                         'timestamp': datetime.now().isoformat()
                     }
@@ -211,7 +213,9 @@ class RAGClaudeMiddleware:
             else:
                 return {
                     'success': False,
-                    'error': getattr(claude_response, 'error', 'Erro desconhecido'),
+                    'error': getattr(
+                        claude_response, 'error', 'Erro desconhecido'
+                    ),
                     'content': '',
                     'mode': 'claude_error'
                 }
@@ -221,12 +225,13 @@ class RAGClaudeMiddleware:
             return {
                 'success': False,
                 'error': 'Erro interno na IA',
-                'content': 'Sistema temporariamente indisponível. Tente novamente.',
+                'content': ('Sistema temporariamente indisponível. '
+                           'Tente novamente.'),
                 'mode': 'critical_error'
             }
     
-    def _get_from_cache(self, prompt: str, user_id: int, 
-                       with_rag: bool) -> Optional[Dict[str, Any]]:
+    def _get_from_cache(self, prompt: str, user_id: int,
+                        with_rag: bool) -> Optional[Dict[str, Any]]:
         """Busca no cache"""
         
         try:
@@ -243,8 +248,8 @@ class RAGClaudeMiddleware:
         
         return None
     
-    def _save_to_cache(self, prompt: str, user_id: int, 
-                      response: Dict[str, Any], with_rag: bool):
+    def _save_to_cache(self, prompt: str, user_id: int,
+                       response: Dict[str, Any], with_rag: bool):
         """Salva no cache"""
         
         try:

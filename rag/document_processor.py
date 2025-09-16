@@ -9,7 +9,7 @@ from pathlib import Path
 
 # Imports seguros com fallback
 try:
-    import PyPDF2
+    import pypdf
     import pdfplumber
     PDF_AVAILABLE = True
 except ImportError:
@@ -196,12 +196,12 @@ class DocumentProcessor:
             except Exception as e:
                 logger.warning(f"Falha no PyMuPDF: {str(e)}")
         
-        # Prioridade 3: PyPDF2 (fallback)
+        # Prioridade 3: pypdf (fallback)
         if PDF_AVAILABLE:
             try:
-                import PyPDF2
+                import pypdf
                 with open(file_path, 'rb') as file:
-                    pdf_reader = PyPDF2.PdfReader(file)
+                    pdf_reader = pypdf.PdfReader(file)
                     for page_num, page in enumerate(pdf_reader.pages):
                         page_text = page.extract_text()
                         if page_text:
@@ -209,10 +209,10 @@ class DocumentProcessor:
                             text += page_text
                 
                 if text.strip():
-                    logger.debug(f"PDF extraído com PyPDF2: {len(text)} chars")
+                    logger.debug(f"PDF extraído com pypdf: {len(text)} chars")
                     return text
             except Exception as e:
-                logger.warning(f"Falha no PyPDF2: {str(e)}")
+                logger.warning(f"Falha no pypdf: {str(e)}")
         
         raise Exception("Nenhuma biblioteca PDF disponível ou falha na extração")
     
@@ -273,7 +273,7 @@ class DocumentProcessor:
         """Retorna o método de extração usado"""
         if extension == '.pdf':
             if PDF_AVAILABLE:
-                return "pdfplumber/PyMuPDF/PyPDF2"
+                return "pdfplumber/PyMuPDF/pypdf"
             else:
                 return "não_disponível"
         elif extension in ['.docx', '.doc']:
@@ -341,7 +341,7 @@ class DocumentProcessor:
     def check_dependencies(self) -> Dict[str, bool]:
         """Verifica status das dependências"""
         return {
-            'PyPDF2': PDF_AVAILABLE,
+            'pypdf': PDF_AVAILABLE,
             'pdfplumber': PDF_AVAILABLE,
             'python-docx': DOCX_AVAILABLE,
             'PyMuPDF': PYMUPDF_AVAILABLE,
