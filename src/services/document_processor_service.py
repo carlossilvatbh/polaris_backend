@@ -687,3 +687,6 @@ class DocumentProcessorService:
         except:
             print(f"[ERROR] DocumentProcessorService: {error_msg}")
 
+# Instância global do service
+document_processor_service = DocumentProcessorService()
+

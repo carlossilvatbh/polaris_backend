@@ -534,3 +534,33 @@ class AuthService:
         except:
             print(f"[ERROR] AuthService: {error_msg}")
 
+
+# Instância global do service
+auth_service = AuthService()
+
+
+def require_auth(f):
+    """
+    Decorator para proteger rotas que requerem autenticação
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Extrair token do header Authorization
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'Token de acesso requerido'}), 401
+        
+        token = auth_header.split(' ')[1]
+        
+        # Validar token
+        validation_result = auth_service.validate_token(token)
+        if not validation_result.success:
+            return jsonify({'error': validation_result.error}), 401
+        
+        # Adicionar dados do usuário ao request
+        request.current_user = validation_result.user
+        
+        return f(*args, **kwargs)
+    
+    return decorated_function
+

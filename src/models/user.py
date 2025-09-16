@@ -20,7 +20,6 @@ class User(db.Model):
     
     # Relacionamentos
     clientes = db.relationship('Cliente', backref='user', lazy=True)
-    documentos_gerados = db.relationship('DocumentoGerado', backref='user', lazy=True)
 
     def __repr__(self):
         return f'<User {self.username}>'

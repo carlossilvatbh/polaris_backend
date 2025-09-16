@@ -583,3 +583,7 @@ class MCPService:
         except:
             print(f"[ERROR] MCPService: {error_msg}")
 
+
+# Instância global do service
+mcp_service = MCPService()
+

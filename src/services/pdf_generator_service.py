@@ -901,3 +901,6 @@ class PDFGeneratorService:
         except:
             print(f"[ERROR] PDFGeneratorService: {error_msg}")
 
+# Instância global do service
+pdf_generator_service = PDFGeneratorService()
+

@@ -840,3 +840,6 @@ class LegalScrapingService:
         except:
             print(f"[ERROR] LegalScrapingService: {error_msg}")
 
+# Instância global do service
+legal_scraping_service = LegalScrapingService()
+

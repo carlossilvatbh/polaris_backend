@@ -784,3 +784,6 @@ class SearchService:
         except:
             print(f"[ERROR] SearchService: {error_msg}")
 
+# Instância global do service
+search_service = SearchService()
+

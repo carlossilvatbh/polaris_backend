@@ -8,6 +8,7 @@ incluindo chat, geração de documentos e análise de estruturas jurídicas.
 import os
 import json
 import requests
+import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
@@ -48,11 +49,13 @@ class ClaudeAIService:
         self.api_url = "https://api.anthropic.com/v1/messages"
         self.model = "claude-3-haiku-20240307"
         self.max_tokens = 1000
+        self.logger = logging.getLogger(self.__class__.__name__)
         
         if not self.api_key:
-            raise ValueError("ANTHROPIC_API_KEY não configurada")
+            self.logger.warning("ANTHROPIC_API_KEY não configurada - modo simulação")
     
-    def chat(self, prompt: str, user_id: int = None, context: List[str] = None) -> AIResponse:
+    def chat(self, prompt: str, user_id: int = None,
+             context: List[str] = None) -> AIResponse:
         """
         Chat básico com Claude AI
         
@@ -65,6 +68,17 @@ class ClaudeAIService:
             AIResponse com a resposta da IA
         """
         try:
+            # Se não há API key, retornar resposta simulada
+            if not self.api_key:
+                return AIResponse(
+                    success=True,
+                    response=("Esta é uma resposta simulada do Claude AI. "
+                              "Para ativar a IA real, configure "
+                              f"ANTHROPIC_API_KEY. Seu prompt foi: {prompt}"),
+                    model="simulado",
+                    usage={'tokens': 0}
+                )
+            
             # Construir prompt com contexto se fornecido
             enhanced_prompt = self._build_enhanced_prompt(prompt, context)
             
@@ -460,4 +474,8 @@ Recomendações:"""
             print(f"[ERROR] ClaudeAIService: {error_msg}")
         except:
             print(f"[ERROR] ClaudeAIService: {error_msg}")
+
+
+# Instância global do service
+claude_ai_service = ClaudeAIService()
 
