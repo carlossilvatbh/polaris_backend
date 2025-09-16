@@ -1,0 +1,27 @@
+# Dependências RAG para POLARIS
+# Execute: pip install -r requirements_rag.txt
+
+# Core RAG dependencies
+langchain==0.1.0
+chromadb==0.4.22
+sentence-transformers==2.2.2
+
+# Document processing
+PyPDF2==3.0.1
+python-docx==0.8.11
+pdfplumber==0.9.0
+
+# Portuguese language model support
+transformers==4.36.0
+torch==2.1.0
+
+# Vector operations
+numpy==1.24.3
+faiss-cpu==1.7.4
+
+# Text processing
+nltk==3.8.1
+spacy==3.7.2
+
+# Optional: Better PDF handling
+pymupdf==1.23.0
