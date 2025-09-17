@@ -2,39 +2,39 @@
 
 Sistema de backend completo para POLARIS - Planning Operations & Legal Analysis for Revenue & International Structures.
 
-## 🎯 **Visão Geral**
+##  **Visão Geral**
 
 O POLARIS é uma plataforma de inteligência artificial especializada em **wealth planning** (planejamento patrimonial) que automatiza a criação de documentos jurídicos complexos para advogados tributaristas, integrando fontes jurídicas dos Estados Unidos e Brasil através do sistema **MCP (Model Context Protocol)**.
 
-## 🚀 **Funcionalidades Principais**
+##  **Funcionalidades Principais**
 
-### **🤖 Inteligência Artificial**
+### ** Inteligência Artificial**
 - **Claude AI** integrado para assistência especializada
 - **RAG (Retrieval-Augmented Generation)** com contexto jurídico
 - **Chat inteligente** para wealth planning
 - **Geração automática** de documentos profissionais
 
-### **📚 Sistema MCP (Model Context Protocol)**
+### ** Sistema MCP (Model Context Protocol)**
 - **Web scraping** automatizado de fontes jurídicas
 - **Indexação inteligente** com busca semântica
 - **Fontes dos EUA**: IRS, SEC, Treasury, FINRA, CFTC
 - **Fontes do Brasil**: Receita Federal, CVM, BACEN, CFC, SUSEP
 - **Processamento automático** de documentos PDF/DOC/TXT
 
-### **🏗️ API REST Completa**
+### **🏗 API REST Completa**
 - **CRUD completo** para clientes
 - **Gestão de usuários** com autenticação
 - **Upload e processamento** de documentos
 - **Busca semântica** em base jurídica
 - **Health checks** e monitoramento
 
-### **🐳 Containerização Docker**
+### ** Containerização Docker**
 - **Deploy profissional** com Docker
 - **Orquestração** com Docker Compose
 - **Scripts de automação** incluídos
 - **Backup e rollback** automatizados
 
-## 🏗️ **Arquitetura Técnica**
+## 🏗 **Arquitetura Técnica**
 
 ### **Stack Tecnológico**
 - **Framework**: Flask (Python 3.11+)
@@ -78,7 +78,7 @@ polaris_backend/
 └── README.md               # Esta documentação
 ```
 
-## 📊 **Modelos de Dados**
+## � **Modelos de Dados**
 
 ### **User (Usuários)**
 ```python
@@ -155,7 +155,7 @@ POST /api/chat-rag             # Chat com RAG ativo
 GET  /api/health               # Health check da IA
 ```
 
-### **👥 Gestão de Clientes**
+### ** Gestão de Clientes**
 ```http
 GET    /api/clientes           # Listar clientes (paginação + busca)
 GET    /api/clientes/{id}      # Obter cliente específico
@@ -166,7 +166,7 @@ POST   /api/clientes/{id}/restore  # Restaurar cliente
 GET    /api/clientes/stats     # Estatísticas dos clientes
 ```
 
-### **📚 Sistema MCP**
+### ** Sistema MCP**
 ```http
 POST /api/mcp/upload           # Upload de documentos
 GET  /api/mcp/documents        # Listar documentos processados
@@ -174,7 +174,7 @@ POST /api/mcp/process          # Processar documento específico
 DELETE /api/mcp/documents/{id} # Excluir documento
 ```
 
-### **🔍 Busca e Indexação**
+### ** Busca e Indexação**
 ```http
 POST /api/search/index         # Indexar documento
 POST /api/search/query         # Busca semântica
@@ -182,7 +182,7 @@ GET  /api/search/stats         # Estatísticas do índice
 DELETE /api/search/index       # Limpar índice
 ```
 
-### **⚖️ Fontes Jurídicas**
+### **⚖ Fontes Jurídicas**
 ```http
 POST /api/legal/scrape         # Executar scraping
 GET  /api/legal/sources        # Listar fontes disponíveis
@@ -190,15 +190,15 @@ GET  /api/legal/data           # Obter dados coletados
 POST /api/legal/process        # Processar dados jurídicos
 ```
 
-### **📋 Sistema**
+### ** Sistema**
 ```http
 GET /api/health                # Health check geral
 GET /api/status                # Status detalhado do sistema
 ```
 
-## ⚙️ **Configuração e Deploy**
+##  **Configuração e Deploy**
 
-### **🐳 Deploy com Docker (Recomendado)**
+### ** Deploy com Docker (Recomendado)**
 
 #### **1. Pré-requisitos**
 ```bash
@@ -256,7 +256,7 @@ export SECRET_KEY="sua-chave-secreta-32-chars-minimo"
 python src/main.py
 ```
 
-## 🔐 **Variáveis de Ambiente**
+##  **Variáveis de Ambiente**
 
 ### **Obrigatórias**
 ```bash
@@ -285,7 +285,7 @@ LOG_LEVEL=DEBUG
 PORT=5000
 ```
 
-## 🏥 **Monitoramento e Health Checks**
+## **Monitoramento e Health Checks**
 
 ### **Health Check Endpoint**
 ```bash
@@ -312,7 +312,7 @@ curl http://localhost:5000/api/health
 curl http://localhost:5000/api/status
 ```
 
-## 🔍 **Sistema MCP em Detalhes**
+## **Sistema MCP em Detalhes**
 
 ### **Fontes Jurídicas Integradas**
 
@@ -342,7 +342,7 @@ curl http://localhost:5000/api/status
 - **Scores de relevância** para wealth planning
 - **Indexação vetorial** para busca semântica
 
-## 🤖 **Integração Claude AI**
+## **Integração Claude AI**
 
 ### **Funcionalidades**
 - **Chat especializado** em wealth planning
@@ -361,7 +361,7 @@ response = claude_rag_service.chat_with_context(
 )
 ```
 
-## 🔒 **Segurança**
+## **Segurança**
 
 ### **Implementações de Segurança**
 - **CORS configurável** por domínio
@@ -379,7 +379,7 @@ X-Frame-Options: DENY
 X-XSS-Protection: 1; mode=block
 ```
 
-## 📈 **Performance**
+## **Performance**
 
 ### **Otimizações Implementadas**
 - **Cache Redis** para sessões e queries frequentes
@@ -395,7 +395,7 @@ X-XSS-Protection: 1; mode=block
 - **Upload de documentos**: < 1 segundo/MB
 - **Busca semântica**: < 500ms
 
-## 🧪 **Desenvolvimento e Testes**
+## **Desenvolvimento e Testes**
 
 ### **Ambiente de Desenvolvimento**
 ```bash
@@ -422,7 +422,7 @@ black src/
 flake8 src/
 ```
 
-## 🔄 **Backup e Recuperação**
+## **Backup e Recuperação**
 
 ### **Dados Importantes**
 - **Banco PostgreSQL** - Dados estruturados
@@ -439,7 +439,7 @@ docker-compose exec postgres pg_dump -U polaris polaris > backup.sql
 docker-compose exec postgres psql -U polaris polaris < backup.sql
 ```
 
-## 📚 **Documentação da API**
+## **Documentação da API**
 
 ### **Formato de Resposta Padrão**
 ```json
@@ -465,7 +465,7 @@ docker-compose exec postgres psql -U polaris polaris < backup.sql
 GET /api/clientes?page=1&per_page=10&search=termo&sort=created_at&order=desc
 ```
 
-## 🚀 **Roadmap**
+## � **Roadmap**
 
 ### **Próximas Funcionalidades**
 - [ ] **Autenticação JWT** completa
@@ -484,7 +484,7 @@ GET /api/clientes?page=1&per_page=10&search=termo&sort=created_at&order=desc
 - [ ] **Logs estruturados** (JSON)
 - [ ] **Backup automático** agendado
 
-## 🤝 **Contribuição**
+## **Contribuição**
 
 ### **Desenvolvimento Local**
 ```bash
@@ -501,18 +501,6 @@ pip install -r requirements.txt
 # Testar localmente
 # Commit e push
 ```
-
-## 📄 **Licença**
-
-Sistema proprietário POLARIS - Todos os direitos reservados.
-
-## 📞 **Suporte**
-
-Para suporte técnico:
-- **Health check**: `GET /api/health`
-- **Status detalhado**: `GET /api/status`
-- **Logs**: Verificar logs da aplicação
-- **Documentação**: Este README
 
 ---
 
